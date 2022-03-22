@@ -1,6 +1,4 @@
-from mongoengine import Document, StringField, EmailField, BooleanField, DateTimeField, connect
-import datetime
-from main import db
+from mongoengine import Document, StringField, EmailField, BooleanField
 
 
 class Users(Document):
@@ -8,12 +6,7 @@ class Users(Document):
     username = StringField()
     password = StringField()
     email_id = EmailField()
-    is_active = BooleanField()
-    dt_created = DateTimeField(default=datetime.datetime.now)
-    dt_updated = DateTimeField(default=datetime.datetime.now)
-
-    def __repr__(self):
-        return 'user: {}'.format(self.username)
+    is_active = BooleanField(default=False)
 
     def to_dict(self):
         user_dict = {
@@ -21,9 +14,7 @@ class Users(Document):
             'username': self.username,
             'email_id': self.email_id,
             'password': self.password,
-            'is_active': self.is_active,
-            'dt_created': self.dt_created,
-            'dt_updated': self.dt_updated
+            'is_active': self.is_active
         }
         return user_dict
 
@@ -34,4 +25,4 @@ class Users(Document):
 
     @classmethod
     def check_email(cls, email_id):
-        return db.users.findOne({'email_id': email_id}).first()
+        return Users.objects.filter(email_id=email_id)
