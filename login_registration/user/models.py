@@ -1,7 +1,8 @@
-from mongoengine import Document, StringField, EmailField, BooleanField
+from mongoengine import Document, StringField, EmailField, BooleanField, SequenceField
 
 
 class Users(Document):
+    id = SequenceField(primary_key=True)
     name = StringField()
     username = StringField()
     password = StringField()

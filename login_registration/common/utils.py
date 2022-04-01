@@ -1,31 +1,58 @@
-import os
+import json
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import smtplib
-from email.message import EmailMessage
+
+import redis
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+r = redis.Redis(
+    host='localhost',
+    port=6379
+)
+
+password = os.getenv("password")
+my_email = os.getenv("my_email")
 
 
 def send_mail(email):
-    # EMAIL_ADDRESS = os.environ.get('aavik743@gmail.com')
-    # EMAIL_PASS = os.environ.get('*****')
-    #
-    # msg = EmailMessage()
-    # msg['Subject'] = 'Fundoo Note'
-    # msg['From'] = EMAIL_ADDRESS
-    # msg['To'] = email
-    # msg.set_content(f"{message}")
-    #
-    # server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    # server.login(EMAIL_ADDRESS, EMAIL_PASS)
-    # server.send_message(msg)
-    # server.quit()
+    # create message object instance
+    msg = MIMEMultipart()
 
-    sender = 'aavik743@gmail.com'
-    receivers = email
+    message = "Click on the link"
 
-    message = """From: From Person <from@fromdomain.com>
-        Subject: Fundoo Note
+    # setup the parameters of the message
+    passwrd = password
+    msg['From'] = my_email
+    msg['To'] = email
+    msg['Subject'] = "Fundoo Note"
 
-        Click on the link.
-        """
+    # add in the message body
+    msg.attach(MIMEText(message, 'plain'))
 
-    smtpObj = smtplib.SMTP('localhost')
-    smtpObj.sendmail(sender, receivers, message)
+    # create server
+    server = smtplib.SMTP('smtp.gmail.com: 587')
+
+    server.starttls()
+
+    # Login Credentials for sending the mail
+    server.login(msg['From'], passwrd)
+
+    # send the message via the server.
+    server.sendmail(msg['From'], msg['To'], msg.as_string())
+
+    server.quit()
+
+
+def do_cache(key, value, expire_time):
+    json_dict = json.dumps(value)
+    r.set(key, json_dict)
+    r.expire(key, expire_time)
+
+
+def get_cache(key):
+    value = r.get(key)
+    return value

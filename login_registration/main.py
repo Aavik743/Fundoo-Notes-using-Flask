@@ -10,6 +10,7 @@ app.config['SECRET_KEY'] = 'secretkey'
 key = app.config['SECRET_KEY']
 jwt = JWTManager(app)
 
+
 connect_db()
 
 

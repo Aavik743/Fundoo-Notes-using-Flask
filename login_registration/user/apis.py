@@ -1,12 +1,12 @@
 import json
 
-from flask import request, session
+from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource
 
+from common import logger, utils
 from .models import Users
 from .utils import get_token
-from common import logger, utils
 
 
 class Register_API(Resource):
@@ -21,11 +21,11 @@ class Register_API(Resource):
 
         if Users.check_username(username) or Users.check_email(email_id):
 
-            return {"Error": "user already exists", "status code": 401}
+            return {"Error": "user already exists", "status code": 400}
         else:
 
             try:
-                token = get_token(username)
+                token = get_token(user.id)
                 email = email_id
                 utils.send_mail(email)
                 user.save()
@@ -41,7 +41,7 @@ class ActivateAccount_API(Resource):
         try:
             decoded_data = get_jwt_identity()
             if decoded_data:
-                user = Users.objects(username=decoded_data)
+                user = Users.objects(id=decoded_data)
                 user.update(is_active=True)
             return {'message': 'account activated', 'status code': 200}
         except:
@@ -57,9 +57,7 @@ class Login_API(Resource):
         user = Users.objects.get(username=user_name)
         try:
             if password == user.password:
-                session['logged_in'] = True
-                session['user_name'] = data['user_name']
-                access_token = get_token(user_name)
+                access_token = get_token(user.id)
                 return {
                     'message': 'Logged in as {}'.format(data['username']),
                     'access_token': access_token
@@ -104,13 +102,13 @@ class Forgot_Pass_API(Resource):
         try:
             data = json.loads(request.data)
             user_name = data.get('username')
+            email_id = data.get('email_id')
             user = Users.objects.get(username=user_name)
 
             if user:
                 # forgot password mail
-                # msg = Message('Hello', sender='yourId@gmail.com', recipients=['someone@gmail.com'])
-                # msg.body = "Click on the link to change your password"
-                # mail.send(msg)
+                email = email_id
+                utils.send_mail(email)
 
                 return {"message": "forgot password link sent", 'status code': 200}
 
@@ -121,8 +119,3 @@ class Forgot_Pass_API(Resource):
             logger.logging.error('Log Error Message')
             return {'error': 'Token is missing or expired', 'status code': 400}
 
-
-class Logout_API(Resource):
-    def post(self):
-        session['logged_in'] = False
-        return {'message': 'logged out'}

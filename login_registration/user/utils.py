@@ -3,8 +3,8 @@ from datetime import timedelta
 from flask_jwt_extended import decode_token, create_access_token
 
 
-def get_token(username):
-    encoded_token = create_access_token(identity=username, expires_delta=timedelta(minutes=600))
+def get_token(id):
+    encoded_token = create_access_token(identity=id, expires_delta=timedelta(minutes=60000))
     return encoded_token
 
 
