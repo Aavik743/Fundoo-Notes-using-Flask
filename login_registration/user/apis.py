@@ -74,12 +74,12 @@ class Reset_Password_API(Resource):
     @jwt_required()
     def get(self):
         data = json.loads(request.data)
-        user_name = data.get('username')
+        decoded_data = get_jwt_identity()
         password = data.get('password')
         password1 = data.get('password1')
         password2 = data.get('password2')
 
-        user = Users.objects.get(username=user_name)
+        user = Users.objects.get(id=decoded_data)
         try:
             if user.password == password:
                 if password1 == password2:
@@ -101,9 +101,8 @@ class Forgot_Pass_API(Resource):
     def get(self):
         try:
             data = json.loads(request.data)
-            user_name = data.get('username')
             email_id = data.get('email_id')
-            user = Users.objects.get(username=user_name)
+            user = Users.objects.get(email_id=email_id)
 
             if user:
                 # forgot password mail

@@ -44,7 +44,6 @@ class Label_API(Resource):
 
 class LabelFunctionalityAPI(Resource):
     def delete(self, id):
-        data = json.loads(request.data)
         validate_data = validate_if_label_exists(id)
         if validate_data:
             return validate_data
@@ -77,8 +76,6 @@ class LabelFunctionalityAPI(Resource):
 
     @jwt_required()
     def get(self, id):
-        data = json.loads(request.data)
-        updated_label = data.get('updated_label')
         validate_data = validate_if_label_exists(id)
         try:
             if validate_data:

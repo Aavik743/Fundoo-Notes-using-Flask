@@ -2,11 +2,12 @@ import redis
 from flask import json, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
-from label.models import Label
+
 from common import logger
+from common.utils import do_cache
+from label.models import Label
 from .models import Notes
 from .validators import validate_create_note, validate_note_exists, validate_is_trash
-from common.utils import get_cache, do_cache
 
 r = redis.Redis(
     host='localhost',
@@ -31,13 +32,13 @@ class NoteAPI(Resource):
             try:
                 notes.save()
                 logger.logging.info('note created')
-                return {'message': 'note created', 'code': 200}
+                return {'message': 'note created', 'status code': 200}
             except:
                 logger.logging.info('note not created')
-                return {'error': 'note not created', 'code': 400}
+                return {'error': 'note not created', 'status code': 400}
         else:
             logger.logging.info('Some error occurred')
-            return {'error': 'Something went wrong', 'code': 500}
+            return {'error': 'Something went wrong', 'status code': 500}
 
     @jwt_required()
     def get(self):
@@ -59,7 +60,7 @@ class NoteAPI(Resource):
             return {'redis key': key, user_id: user_notes, 'status code': 200}
         except:
             logger.logging.info('Some error occurred')
-            return {'error': 'Something went wrong', 'code': 400}
+            return {'error': 'Something went wrong', 'status code': 400}
 
 
 class NoteFunctionalityAPI(Resource):
@@ -151,13 +152,13 @@ class PinNoteApi(Resource):
                     'user_id': notes['user_id'],
                     'isPinned': notes['isPinned'],
                     'isTrash': notes['isTrash'],
-                    'label_id': notes['label_id'],
+                    'label_id': [lb.label for lb in notes.label_id],
                     'colour': notes['colour'],
                     'date_created': json.dumps(notes['date_created'])
                 }
             except:
                 logger.logging.info('Some error occurred')
-                return {'error': 'Something went wrong', 'code': 400}
+                return {'error': 'Something went wrong', 'status code': 400}
 
 
 class TrashNoteApi(Resource):
@@ -176,20 +177,20 @@ class TrashNoteApi(Resource):
                     'user_id': notes['user_id'],
                     'isPinned': notes['isPinned'],
                     'isTrash': notes['isTrash'],
-                    'label_id': notes['label_id'],
+                    'label_id': [lb.label for lb in notes.label_id],
                     'colour': notes['colour'],
                     'date_created': json.dumps(notes['date_created'])
                 }
             except:
                 logger.logging.info('Some error occurred')
-                return {'error': 'Something went wrong', 'code': 400}
+                return {'error': 'Something went wrong', 'status code': 400}
 
 
 class LabelNoteAPI(Resource):
     @jwt_required()
-    def post(self, id):  # note_id from url
+    def post(self, id):
         data = json.loads(request.data)
-        label_id = data.get('label_id')  # postman input
+        label_id = data.get('label_id')
         lb = Label.objects.filter(id=label_id).first()
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
@@ -203,9 +204,9 @@ class LabelNoteAPI(Resource):
                     'user_id': notes['user_id'],
                     'isPinned': notes['isPinned'],
                     'isTrash': notes['isTrash'],
-                    'label_id': notes['label_id'],
+                    'label_id': [lb.label for lb in notes.label_id],
                     'colour': notes['colour'],
-                    'date_created': json.dumps(notes['date_created'])
+                    'date_created': str(notes['date_created'])
                 }
             except:
                 logger.logging.info('Some error occurred')

@@ -1,7 +1,9 @@
 import datetime
-from label.models import Label
-from mongoengine import StringField, SequenceField, Document, IntField, BooleanField, ImageField, DateTimeField, \
+
+from mongoengine import StringField, SequenceField, Document, IntField, BooleanField, DateTimeField, \
     ListField, ReferenceField, PULL
+
+from label.models import Label
 
 
 class Notes(Document):
@@ -12,7 +14,6 @@ class Notes(Document):
     isPinned = BooleanField(default=False)
     isTrash = BooleanField(default=False)
     label_id = ListField(ReferenceField(Label, reverse_delete_rule=PULL))
-    # label_id = IntField(default=0)
     colour = StringField(default='black')
     date_created = DateTimeField(default=datetime.datetime.now)
 
