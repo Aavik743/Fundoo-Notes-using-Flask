@@ -1,5 +1,9 @@
 from mongoengine import connect
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 def connect_db():
-    connect(host="mongodb://127.0.0.1:27017/Fundoo")
+    connect(host=os.getenv("server"))

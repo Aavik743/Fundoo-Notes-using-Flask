@@ -3,10 +3,14 @@ from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from db.utils import connect_db
 from routes import all_routes
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 api = Api(app)
-app.config['SECRET_KEY'] = 'secretkey'
+app.config['SECRET_KEY'] = os.getenv("secret_key")
 key = app.config['SECRET_KEY']
 jwt = JWTManager(app)
 
