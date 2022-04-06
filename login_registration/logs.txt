@@ -2759,3 +2759,15 @@
 2022-04-05 21:18:26 INFO- * Debugger PIN: 231-263-058
 2022-04-05 21:18:26 INFO- * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 2022-04-05 21:18:47 INFO-127.0.0.1 - - [05/Apr/2022 21:18:47] "POST /register HTTP/1.1" 200 -
+2022-04-06 21:25:11 INFO- * Restarting with stat
+2022-04-06 21:25:12 WARNING- * Debugger is active!
+2022-04-06 21:25:12 INFO- * Debugger PIN: 231-263-058
+2022-04-06 21:25:12 INFO- * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+2022-04-06 21:51:44 INFO-127.0.0.1 - - [06/Apr/2022 21:51:44] "[33mGET /documented_api/doc HTTP/1.1[0m" 404 -
+2022-04-06 21:51:44 INFO-127.0.0.1 - - [06/Apr/2022 21:51:44] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2022-04-06 22:56:12 INFO- * Restarting with stat
+2022-04-06 22:56:12 WARNING- * Debugger is active!
+2022-04-06 22:56:12 INFO- * Debugger PIN: 231-263-058
+2022-04-06 22:56:12 INFO- * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+2022-04-06 22:57:41 INFO- * Detected change in 'C:\\Users\\The Lie Lama\\PycharmProjects\\Upload\\login_registration\\user\\apis.py', reloading
+2022-04-06 22:57:42 INFO- * Restarting with stat

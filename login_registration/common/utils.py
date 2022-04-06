@@ -18,11 +18,9 @@ password = os.getenv("password")
 my_email = os.getenv("my_email")
 
 
-def send_mail(email):
+def send_mail(email, message):
     # create message object instance
     msg = MIMEMultipart()
-
-    message = "Click on the link"
 
     # setup the parameters of the message
     passwrd = password

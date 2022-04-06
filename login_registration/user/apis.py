@@ -3,6 +3,7 @@ import json
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource
+from flask_restplus import  Namespace
 
 from common import logger, utils
 from .models import Users
@@ -27,7 +28,8 @@ class Register_API(Resource):
             try:
                 token = get_token(user.id)
                 email = email_id
-                utils.send_mail(email)
+                message = "Click on the link"
+                utils.send_mail(email, message)
                 user.save()
                 return {'message': 'confirmation email sent', 'status code': 200, 'token': token}
             except:
@@ -105,9 +107,9 @@ class Forgot_Pass_API(Resource):
             user = Users.objects.get(email_id=email_id)
 
             if user:
-                # forgot password mail
                 email = email_id
-                utils.send_mail(email)
+                message = "Click on the link"
+                utils.send_mail(email, message)
 
                 return {"message": "forgot password link sent", 'status code': 200}
 
