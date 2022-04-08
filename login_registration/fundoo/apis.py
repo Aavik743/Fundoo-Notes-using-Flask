@@ -19,15 +19,21 @@ r = redis.Redis(
 class NoteAPI(Resource):
     @jwt_required()
     def post(self):
+        """
+            This API is used to create a note for user
+            @param request: It takes note title, description, label(optional)
+            @return: creates not on successful validation
+        """
         user_id = get_jwt_identity()
         data = json.loads(request.data)
         title = data.get('title')
         description = data.get('description')
+        label_id = data.get('label_id')
 
         data_validation = validate_create_note(data)
         if data_validation:
             return data_validation
-        notes = Notes(title=title, description=description, user_id=user_id)
+        notes = Notes(title=title, description=description, user_id=user_id, label_id=label_id)
         try:
             if notes:
                 notes.save()
@@ -42,6 +48,10 @@ class NoteAPI(Resource):
 
     @jwt_required()
     def get(self):
+        """
+            This API is used to fetch all notes of the user
+            @return: returns all notes
+        """
         user_notes = []
         user_id = get_jwt_identity()
         key = f"getuser{user_id}"
@@ -76,6 +86,12 @@ class NoteFunctionalityAPI(Resource):
 
     @jwt_required()
     def patch(self, id):
+        """
+            This API is used to update the existing note
+            @param request: title, description
+            @param note_id: primary_key of the specific note
+            @return: updates the note
+         """
         user_id = get_jwt_identity()
 
         data = json.loads(request.data)
@@ -110,6 +126,11 @@ class NoteFunctionalityAPI(Resource):
 
     @jwt_required()
     def delete(self, id):
+        """
+            This API is used to delete and trash existing note
+            @param note_id: primary_key of the specific note
+            @return: trash or delete the note if it is already trashed
+        """
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
         try:
@@ -128,6 +149,11 @@ class NoteFunctionalityAPI(Resource):
 
     @jwt_required()
     def get(self, id):
+        """
+            This API is used to fetch a notes by note id
+            @param note_id: primary_key of the specific note
+            @return: returns the note if it exist and belongs to the user
+        """
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
         try:
@@ -156,6 +182,11 @@ class NoteFunctionalityAPI(Resource):
 class PinNoteApi(Resource):
     @jwt_required()
     def post(self, id):
+        """
+            This API is used to pin a notes by note id
+            @param note_id: primary_key of the specific note
+            @return: pins the note
+        """
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
 
@@ -186,6 +217,11 @@ class PinNoteApi(Resource):
 class TrashNoteApi(Resource):
     @jwt_required()
     def post(self, id):
+        """
+            This API is used to trash a notes by note id
+            @param note_id: primary_key of the specific note
+            @return: trashes the note
+        """
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
         try:
@@ -214,6 +250,11 @@ class TrashNoteApi(Resource):
 class LabelNoteAPI(Resource):
     @jwt_required()
     def post(self, id):
+        """
+            This API is used to add a note to a label
+            @param request: label id
+            @return: adds label id to the note
+        """
         data = json.loads(request.data)
         label_id = data.get('label_id')
         lb = Label.objects.filter(id=label_id).first()

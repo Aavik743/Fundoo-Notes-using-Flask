@@ -92,7 +92,7 @@ class Login_API(Resource):
 
 class Reset_Password_API(Resource):
     @swagger.model
-    @swagger.operation(notes='swagger is working')
+    @swagger.operation(notes='Reset ')
     @jwt_required()
     def get(self):
         """
