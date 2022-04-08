@@ -1,3 +1,4 @@
+import base64
 import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -29,7 +30,8 @@ def send_mail(email, message):
     msg['Subject'] = "Fundoo Note"
 
     # add in the message body
-    msg.attach(MIMEText(message, 'plain'))
+    msg.attach(MIMEText(message, 'html'))
+
 
     # create server
     server = smtplib.SMTP('smtp.gmail.com: 587')
@@ -54,3 +56,21 @@ def do_cache(key, value, expire_time):
 def get_cache(key):
     value = r.get(key)
     return value
+
+
+def get_short_token(token):
+    token_string_bytes = token.encode("ascii")
+
+    base64_bytes = base64.b64encode(token_string_bytes)
+    base64_string = base64_bytes.decode("ascii")
+
+    return base64_string
+
+
+def get_long_token(token):
+    base64_bytes = token.encode("ascii")
+
+    sample_string_bytes = base64.b64decode(base64_bytes)
+    sample_string = sample_string_bytes.decode("ascii")
+
+    return sample_string

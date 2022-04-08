@@ -8,6 +8,8 @@ def get_token(id):
     return encoded_token
 
 
-def data_from_token(encoded_token):
-    decoded_data = decode_token(encoded_token)
-    return decoded_data
+# def data_from_token(encoded_token):
+#     decoded_data = decode_token(encoded_token)
+#     return decoded_data
+
+

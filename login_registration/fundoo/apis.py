@@ -4,6 +4,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 
 from common import logger
+from common.exception import NotFoundException, InternalServerException
 from common.utils import do_cache
 from label.models import Label
 from .models import Notes
@@ -27,15 +28,14 @@ class NoteAPI(Resource):
         if data_validation:
             return data_validation
         notes = Notes(title=title, description=description, user_id=user_id)
-
-        if notes:
-            try:
+        try:
+            if notes:
                 notes.save()
                 logger.logging.info('note created')
                 return {'message': 'note created', 'status code': 200}
-            except:
-                logger.logging.info('note not created')
-                return {'error': 'note not created', 'status code': 400}
+        except:
+            logger.logging.info('note not created')
+            return {'error': 'note not created', 'status code': 400}
         else:
             logger.logging.info('Some error occurred')
             return {'error': 'Something went wrong', 'status code': 500}
@@ -52,18 +52,28 @@ class NoteAPI(Resource):
 
         notes = Notes.objects.filter(user_id=user_id)
         try:
+            if not notes:
+                raise InternalServerException('Something went wrong', 400)
+
             for note in notes:
-                dict_itr = note.to_dict()
-                user_notes.append(dict_itr)
+                notes_ = Notes.objects.filter(isPinned=True, isTrash=False)
+                for note in notes_:
+                    dict_itr = note.to_dict()
+                    user_notes.append(dict_itr)
+                _notes = Notes.objects.filter(isPinned=False, isTrash=False)
+                for note in _notes:
+                    dict_itr = note.to_dict()
+                    user_notes.append(dict_itr)
             logger.logging.info('notes displayed')
             do_cache(key, user_notes, 300)
             return {'redis key': key, user_id: user_notes, 'status code': 200}
-        except:
+        except InternalServerException as exception:
             logger.logging.info('Some error occurred')
-            return {'error': 'Something went wrong', 'status code': 400}
+            return exception.__dict__
 
 
 class NoteFunctionalityAPI(Resource):
+
     @jwt_required()
     def patch(self, id):
         user_id = get_jwt_identity()
@@ -73,49 +83,56 @@ class NoteFunctionalityAPI(Resource):
         description_updated = data.get('description_updated')
 
         notes = Notes.objects.get(id=id)
+        try:
+            if notes:
 
-        if notes['user_id'] == user_id:
-            notes['title'] = title_updated
-            notes['description'] = description_updated
-            try:
-                notes.save()
-                logger.logging.info('note updated')
-                return {
-                    'id': notes['id'],
-                    'title': notes['title'],
-                    'description': notes['description'],
-                    'user_id': notes['user_id'],
-                    'isPinned': notes['isPinned'],
-                    'isTrash': notes['isTrash'],
-                    'label_id': [lb.label for lb in notes.label_id],
-                    'colour': notes['colour'],
-                    'date_created': str(notes['date_created'])
-                }
-            except:
-                logger.logging.info('Some error occurred')
-                return {'error': 'Something went wrong', 'code': 400}
+                if notes['user_id'] == user_id:
+                    notes['title'] = title_updated
+                    notes['description'] = description_updated
+
+                    notes.save()
+                    logger.logging.info('note updated')
+                    return {
+                        'id': notes['id'],
+                        'title': notes['title'],
+                        'description': notes['description'],
+                        'user_id': notes['user_id'],
+                        'isPinned': notes['isPinned'],
+                        'isTrash': notes['isTrash'],
+                        'label_id': [lb.label for lb in notes.label_id],
+                        'colour': notes['colour'],
+                        'date_created': str(notes['date_created'])
+                    }
+                raise NotFoundException('Note not found', 400)
+        except NotFoundException as exception:
+            logger.logging.info('Some error occurred')
+            return exception.__dict__
 
     @jwt_required()
     def delete(self, id):
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
-        if notes['user_id'] == user_id:
-            data_validation = validate_is_trash(id)
-            if data_validation:
-                return data_validation
-            try:
+        try:
+            if notes['user_id'] == user_id:
+                data_validation = validate_is_trash(id)
+                if data_validation:
+                    return data_validation
+
                 notes.delete()
                 logger.logging.info('note deleted')
                 return {'message': 'note deleted'}
-            except:
-                logger.logging.info('Some error occurred')
-                return {'error': 'Something went wrong', 'code': 400}
+            raise NotFoundException('Note not found', 400)
+        except NotFoundException as exception:
+            logger.logging.info('Some error occurred')
+            return exception.__dict__
 
     @jwt_required()
     def get(self, id):
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
         try:
+            if notes['user_id'] == user_id:
+                raise InternalServerException('This note does not belong to you', 400)
             if notes['user_id'] == user_id:
                 data_validation = validate_note_exists(id)
                 if data_validation:
@@ -131,9 +148,9 @@ class NoteFunctionalityAPI(Resource):
                     'colour': notes['colour'],
                     'date_created': str(notes['date_created'])
                 }
-        except:
+        except InternalServerException as exception:
             logger.logging.info('Some error occurred')
-            return {'error': 'Something went wrong', 'code': 400}
+            return exception.__dict__
 
 
 class PinNoteApi(Resource):
