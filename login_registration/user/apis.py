@@ -7,10 +7,16 @@ from common.exception import NotUniqueException, NotFoundException, NotMatchingE
 from common import logger, utils
 from .models import Users
 from .utils import get_token
+from flask_restful_swagger import swagger
 
 
 class Register_API(Resource):
     def post(self):
+        """
+            This api is for user registration to this application
+            @param request: user registration data like username, email, password
+            @return: account verification link to registered email once registration is successful
+        """
         data = json.loads(request.data)
         email_id = data.get('email_id')
         username = data.get('username')
@@ -39,6 +45,11 @@ class Register_API(Resource):
 class ActivateAccount_API(Resource):
     @jwt_required()
     def get(self):
+        """
+            This Api verifies the user-id and jwt token sent to the email and activates the account
+            @param request: Get request hits with jwt token which contains user information
+            @return: Account activation confirmation
+        """
         try:
             decoded_data = get_jwt_identity()
             print(decoded_data)
@@ -52,6 +63,11 @@ class ActivateAccount_API(Resource):
 
 class Login_API(Resource):
     def post(self):
+        """
+            This API is used to authenticate user to access resources
+            @param request: user credential like username and password
+            @return: Returns success message and access token on successful login
+        """
         data = json.loads(request.data)
         user_name = data.get('username')
         password = data.get('password')
@@ -75,8 +91,15 @@ class Login_API(Resource):
 
 
 class Reset_Password_API(Resource):
+    @swagger.model
+    @swagger.operation(notes='swagger is working')
     @jwt_required()
     def get(self):
+        """
+            This API accepts the changes the current password
+            @param : current password and new password
+            @return: success message and new password
+        """
         data = json.loads(request.data)
         decoded_data = get_jwt_identity()
         password = data.get('password')
@@ -113,6 +136,11 @@ class Reset_Password_API(Resource):
 
 class Forgot_Pass_API(Resource):
     def get(self):
+        """
+            This API accepts the get request hit from the email on clicked on link
+            @param : email and token
+            @return: success message
+        """
         data = json.loads(request.data)
         email_id = data.get('email_id')
         user = Users.objects.get(email_id=email_id)

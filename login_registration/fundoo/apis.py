@@ -4,7 +4,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 
 from common import logger
-from common.exception import NotFoundException, InternalServerException
+from common.exception import NotFoundException, InternalServerException, NotMatchingException
 from common.utils import do_cache
 from label.models import Label
 from .models import Notes
@@ -158,9 +158,14 @@ class PinNoteApi(Resource):
     def post(self, id):
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
-        if notes['user_id'] == user_id:
-            notes['isPinned'] = True
-            try:
+
+        try:
+            if not notes:
+                raise NotFoundException('Could not find the note', 400)
+
+            if notes['user_id'] == user_id:
+                notes['isPinned'] = True
+
                 notes.save()
                 return {
                     'id': notes['id'],
@@ -173,9 +178,9 @@ class PinNoteApi(Resource):
                     'colour': notes['colour'],
                     'date_created': json.dumps(notes['date_created'])
                 }
-            except:
+        except NotFoundException as e:
                 logger.logging.info('Some error occurred')
-                return {'error': 'Something went wrong', 'status code': 400}
+                return e.__dict__
 
 
 class TrashNoteApi(Resource):
@@ -183,9 +188,12 @@ class TrashNoteApi(Resource):
     def post(self, id):
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
-        if notes['user_id'] == user_id:
-            notes['isTrash'] = True
-            try:
+        try:
+            if not notes:
+                raise NotFoundException('Could not find the note', 400)
+            if notes['user_id'] == user_id:
+                notes['isTrash'] = True
+
                 notes.save()
                 return {
                     'id': notes['id'],
@@ -198,9 +206,9 @@ class TrashNoteApi(Resource):
                     'colour': notes['colour'],
                     'date_created': json.dumps(notes['date_created'])
                 }
-            except:
-                logger.logging.info('Some error occurred')
-                return {'error': 'Something went wrong', 'status code': 400}
+        except NotFoundException as e:
+            logger.logging.info('Some error occurred')
+            return e.__dict__
 
 
 class LabelNoteAPI(Resource):
@@ -211,20 +219,23 @@ class LabelNoteAPI(Resource):
         lb = Label.objects.filter(id=label_id).first()
         user_id = get_jwt_identity()
         notes = Notes.objects.get(id=id)
-        if notes['user_id'] == user_id:
-            try:
-                notes.update(push__label_id=lb)
-                return {
-                    'id': notes['id'],
-                    'title': notes['title'],
-                    'description': notes['description'],
-                    'user_id': notes['user_id'],
-                    'isPinned': notes['isPinned'],
-                    'isTrash': notes['isTrash'],
-                    'label_id': [lb.label for lb in notes.label_id],
-                    'colour': notes['colour'],
-                    'date_created': str(notes['date_created'])
-                }
-            except:
-                logger.logging.info('Some error occurred')
-                return {'error': 'something went wrong', 'status code': 400}
+        try:
+            if notes[user_id] != user_id:
+                raise NotMatchingException('Users ids does not match', 400)
+            if notes['user_id'] == user_id:
+
+                    notes.update(push__label_id=lb)
+                    return {
+                        'id': notes['id'],
+                        'title': notes['title'],
+                        'description': notes['description'],
+                        'user_id': notes['user_id'],
+                        'isPinned': notes['isPinned'],
+                        'isTrash': notes['isTrash'],
+                        'label_id': [lb.label for lb in notes.label_id],
+                        'colour': notes['colour'],
+                        'date_created': str(notes['date_created'])
+                    }
+        except NotMatchingException as e:
+            logger.logging.info('Some error occurred')
+            return e.__dict__

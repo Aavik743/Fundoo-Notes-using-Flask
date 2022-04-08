@@ -2,6 +2,7 @@ from flask import request, json
 from flask_restful import Resource
 
 from common import logger
+from common.exception import NotFoundException, NotMatchingException, NotUniqueException, InternalServerException
 from .models import Label
 from .validators import validate_add_label, validate_if_label_exists
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -15,16 +16,20 @@ class Label_API(Resource):
         user_id = decoded_data
         label = data.get('label')
         validate_data = validate_add_label(data)
-        if validate_data:
-            return validate_data
-        lb = Label(label=label, user_id=user_id)
         try:
+            if not user_id:
+                raise InternalServerException('Token is missing', 400)
+            if validate_data:
+                return validate_data
+            lb = Label(label=label, user_id=user_id)
+
+
             lb.save()
             logger.logging.info('label added')
             return {'message': 'label added', 'status code': 200}
-        except:
+        except InternalServerException as e:
             logger.logging.info('Some error occurred')
-            return {'error': 'something went wrong', 'status code': 400}
+            return e.__dict__
 
     @jwt_required()
     def get(self):
@@ -32,14 +37,16 @@ class Label_API(Resource):
         user_id = get_jwt_identity()
         labels = Label.objects.filter(user_id=user_id)
         try:
+            if not labels:
+                raise NotFoundException('label could not be found', 400)
             for label in labels:
                 dict_itr = label.to_dict()
                 user_labels.append(dict_itr)
             logger.logging.info('notes displayed')
             return {user_id: user_labels, 'status code': 200}
-        except:
+        except NotFoundException as e:
             logger.logging.info('Some error occurred')
-            return {'error': 'something went wrong', 'status code': 400}
+            return e.__dict__
 
 
 class LabelFunctionalityAPI(Resource):
@@ -49,11 +56,13 @@ class LabelFunctionalityAPI(Resource):
             return validate_data
         lb = Label.objects.get(id=id)
         try:
+            if not lb:
+                raise NotFoundException('label could not be found', 400)
             lb.delete()
             return {'message': 'label deleted', 'status code': 200}
-        except:
+        except NotFoundException as e:
             logger.logging.info('Some error occurred')
-            return {'error': 'something went wrong', 'status code': 400}
+            return e.__dict__
 
     @jwt_required()
     def patch(self, id):
@@ -65,14 +74,16 @@ class LabelFunctionalityAPI(Resource):
         lb = Label.objects.get(id=id)
         lb['label'] = updated_label
         try:
+            if not updated_label:
+                raise NotFoundException('updated label field is empty', 400)
             lb.save()
             return {
                 'label': lb['label'],
                 'status code': 200
             }
-        except:
+        except NotFoundException as e:
             logger.logging.info('Some error occurred')
-            return {'error': 'something went wrong', 'status code': 400}
+            return e.__dict__
 
     @jwt_required()
     def get(self, id):
@@ -81,11 +92,13 @@ class LabelFunctionalityAPI(Resource):
             if validate_data:
                 return validate_data
             lb = Label.objects.get(id=id)
+            if not lb:
+                raise NotFoundException('label does not exist', 400)
             return {
                 'id': lb['id'],
                 'label': lb['label'],
                 'user_id': lb['user_id']
             }
-        except:
+        except NotFoundException as e:
             logger.logging.info('Some error occurred')
-            return {'error': 'something went wrong', 'status code': 400}
+            return e.__dict__
