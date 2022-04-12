@@ -3,11 +3,13 @@ import json
 from flask import request, render_template
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource
-from common.exception import NotUniqueException, NotFoundException, NotMatchingException
-from common import logger, utils
-from .models import Users
-from .utils import get_token
 from flask_restful_swagger import swagger
+
+from common import logger, utils
+from common.exception import NotUniqueException, NotFoundException, NotMatchingException
+from .models import Users
+from task import send_mail
+from .utils import get_token, short_token, original_token
 
 
 class Register_API(Resource):
@@ -29,9 +31,11 @@ class Register_API(Resource):
                 raise NotUniqueException('user already exists', 400)
             else:
                 token = get_token(user.id)
+                shorttoken = short_token(token)
                 email = email_id
-                template = render_template('activation.html', token=token)
-                utils.send_mail(email, template)
+                template = render_template('activation.html', token=shorttoken)
+                # utils.send_mail(email, template)
+                send_mail.delay(email, template)
                 user.save()
                 return {'message': 'confirmation email sent', 'status code': 200, 'token': token}
         except NotUniqueException as exception:
@@ -52,7 +56,6 @@ class ActivateAccount_API(Resource):
         """
         try:
             decoded_data = get_jwt_identity()
-            print(decoded_data)
             if decoded_data:
                 user = Users.objects(id=decoded_data)
                 user.update(is_active=True)
@@ -92,7 +95,7 @@ class Login_API(Resource):
 
 class Reset_Password_API(Resource):
     @swagger.model
-    @swagger.operation(notes='Reset ')
+    @swagger.operation(notes='Reset Password API')
     @jwt_required()
     def get(self):
         """
@@ -135,6 +138,8 @@ class Reset_Password_API(Resource):
 
 
 class Forgot_Pass_API(Resource):
+    @swagger.model
+    @swagger.operation(notes='Forgot Password API')
     def get(self):
         """
             This API accepts the get request hit from the email on clicked on link

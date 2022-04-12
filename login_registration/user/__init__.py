@@ -4,6 +4,6 @@ user_routes = [
     (Register_API, '/register'),
     (ActivateAccount_API, '/activate'),
     (Login_API, '/login'),
-    (Reset_Password_API, '/reset_password'),
-    (Forgot_Pass_API, '/forgot_password')
+    (Reset_Password_API, '/resetpassword'),
+    (Forgot_Pass_API, '/forgotpassword')
 ]

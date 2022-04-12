@@ -27,7 +27,7 @@ def send_mail(email, message):
     passwrd = password
     msg['From'] = my_email
     msg['To'] = email
-    msg['Subject'] = "Fundoo Note"
+    msg['Subject'] = "Click on the link"
 
     # add in the message body
     msg.attach(MIMEText(message, 'html'))

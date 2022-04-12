@@ -3,6 +3,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 
 from common import logger
+from flask_restful_swagger import swagger
 from common.exception import NotFoundException, InternalServerException
 from .models import Label
 from .validators import validate_add_label, validate_if_label_exists
@@ -36,6 +37,8 @@ class Label_API(Resource):
             logger.logging.info('Some error occurred')
             return e.__dict__
 
+    @swagger.model
+    @swagger.operation(notes='This API is used to fetch a notes by note id')
     @jwt_required()
     def get(self):
         """

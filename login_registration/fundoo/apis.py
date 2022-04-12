@@ -4,6 +4,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 
 from common import logger
+from flask_restful_swagger import swagger
 from common.exception import NotFoundException, InternalServerException, NotMatchingException
 from common.utils import do_cache
 from label.models import Label
@@ -46,6 +47,8 @@ class NoteAPI(Resource):
             logger.logging.info('Some error occurred')
             return {'error': 'Something went wrong', 'status code': 500}
 
+    @swagger.model
+    @swagger.operation(notes='This API is used to fetch all notes of the user')
     @jwt_required()
     def get(self):
         """
@@ -147,6 +150,8 @@ class NoteFunctionalityAPI(Resource):
             logger.logging.info('Some error occurred')
             return exception.__dict__
 
+    @swagger.model
+    @swagger.operation(notes='This API is used to fetch a notes by note id')
     @jwt_required()
     def get(self, id):
         """
